@@ -1,18 +1,38 @@
-import {Prop, Schema, SchemaFactory} from '@nestjs/mongoose';
-import * as mongoose from 'mongoose';
-import {Document} from 'mongoose';
-import {Track} from "./track.schema";
+import { Track } from './track.schema';
+import {
+  BelongsTo,
+  Column,
+  DataType,
+  ForeignKey,
+  Model,
+  Table,
+} from 'sequelize-typescript';
 
-export type CommentDocument = Comment & Document;
+type CommentCreationAttrsType = {
+  name: string;
+  username: string;
+};
 
-@Schema()
-export class Comment {
-    @Prop()
-    username: string;
-    @Prop()
-    text: string;
-    @Prop({type: mongoose.Schema.Types.ObjectId, ref: 'Track'})
-    track: Track;
+@Table({ tableName: 'comment' })
+export class Comment extends Model<Comment, CommentCreationAttrsType> {
+  @Column({
+    type: DataType.INTEGER,
+    unique: true,
+    primaryKey: true,
+    autoIncrement: true,
+  })
+  id: number;
+
+  @Column({
+    type: DataType.STRING,
+    unique: false,
+    allowNull: false,
+  })
+  username: string;
+
+  @BelongsTo(() => Track)
+  track: Track;
+
+  @ForeignKey(() => Track)
+  userId: number;
 }
-
-export const CommentShema = SchemaFactory.createForClass(Comment);

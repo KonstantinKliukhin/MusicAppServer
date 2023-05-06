@@ -1,32 +1,67 @@
-import {Prop, Schema, SchemaFactory} from '@nestjs/mongoose';
-import * as mongoose from 'mongoose';
-import {Document} from 'mongoose';
-import {Comment} from "./comments.schema";
+import { Comment } from './comments.schema';
+import { Column, DataType, HasMany, Model, Table } from 'sequelize-typescript';
 
-export type TrackDocument = Track & Document;
+type TrackCreationAttrsType = {
+  name: string;
+  artist: string;
+  picture: string;
+  audio: string;
+  text?: string;
+};
 
-@Schema()
-export class Track {
-    @Prop()
-    name: string;
+@Table({ tableName: 'track' })
+export class Track extends Model<Track, TrackCreationAttrsType> {
+  @Column({
+    type: DataType.INTEGER,
+    unique: true,
+    primaryKey: true,
+    autoIncrement: true,
+  })
+  id: number;
 
-    @Prop()
-    artist: string;
+  @Column({
+    type: DataType.STRING,
+    unique: false,
+    allowNull: false,
+  })
+  name: string;
 
-    @Prop()
-    listens: number;
+  @Column({
+    type: DataType.STRING,
+    unique: false,
+    allowNull: false,
+  })
+  artist: string;
 
-    @Prop()
-    picture: string;
+  @Column({
+    type: DataType.INTEGER,
+    unique: false,
+    allowNull: false,
+    defaultValue: 0,
+  })
+  listens: number;
 
-    @Prop()
-    text: string;
+  @Column({
+    type: DataType.STRING,
+    unique: true,
+    allowNull: false,
+  })
+  picture: string;
 
-    @Prop()
-    audio: string;
+  @Column({
+    type: DataType.STRING,
+    unique: false,
+    allowNull: true,
+  })
+  text: string;
 
-    @Prop({type: [{type: mongoose.Schema.Types.ObjectId, ref: 'Comment'}]})
-    comments: Comment[];
+  @Column({
+    type: DataType.STRING,
+    unique: true,
+    allowNull: false,
+  })
+  audio: string;
+
+  @HasMany(() => Comment)
+  comments: Comment[];
 }
-
-export const TrackShema = SchemaFactory.createForClass(Track);

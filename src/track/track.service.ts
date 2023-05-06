@@ -1,66 +1,116 @@
-import {Injectable} from "@nestjs/common";
-import {InjectModel} from "@nestjs/mongoose";
-import {Model, ObjectId} from "mongoose";
-import {Track, TrackDocument} from "./schemas/track.schema";
-import {Comment, CommentDocument} from "./schemas/comments.schema";
-import {CreateTrackDto} from "./dto/create-track.dto";
-import {CreateCommentDto} from "./dto/add-comment.dto";
-import {FileService, FileType} from "../file/file.service";
+import { Injectable } from '@nestjs/common';
+import { Track } from './schemas/track.schema';
+import { CreateTrackDto } from './dto/create-track.dto';
+import { CreateCommentDto } from './dto/add-comment.dto';
+import { FileService, FileType } from '../file/file.service';
+import { InjectModel } from '@nestjs/sequelize';
+import { Comment } from './schemas/comments.schema';
 
-
-Injectable()
+@Injectable()
 export class TrackService {
+  constructor(
+    @InjectModel(Track) private trackModel: typeof Track,
+    @InjectModel(Comment) private commentModel: typeof Comment,
+    private fileService: FileService,
+  ) {}
 
-    constructor(
-        @InjectModel(Track.name) private trackModel: Model<TrackDocument>,
-        @InjectModel(Comment.name) private commentModel: Model<CommentDocument>,
-        private fileService: FileService
-    ) {}
+  async create(dto: CreateTrackDto, picture, audio): Promise<Track> {
+    const audioPath = await this.fileService.createFile(FileType.AUDIO, audio);
+    const picturePath = await this.fileService.createFile(
+      FileType.IMAGE,
+      picture,
+    );
+    const track = await this.trackModel.create({
+      ...dto,
+      audio: audioPath,
+      picture: picturePath,
+    });
+    return track;
+  }
 
-    async create(dto: CreateTrackDto, picture, audio): Promise<Track> {
-        const audioPath = await this.fileService.createFile(FileType.AUDIO, audio);
-        const picturePath = await this.fileService.createFile(FileType.IMAGE, picture);
-        const track = await this.trackModel.create({...dto, listens: 0, audio: audioPath, picture: picturePath});
-        return track;
-    }
+  async getAll(count = 10, offset = 0): Promise<Track[]> {
+    const tracks = await this.trackModel.findAll({
+      offset,
+      limit: count,
+      include: ['comments'],
+      attributes: [
+        'id',
+        'name',
+        'artist',
+        'listens',
+        'picture',
+        'audio',
+        'text',
+      ],
+    });
 
-    async getAll(count: number = 10, offset: number = 0): Promise<Track[]> {
-        const tracks = await this.trackModel.find().skip(offset).limit(count);
+    return tracks;
+  }
 
-        return tracks;
-    }
+  async getOne(id: number): Promise<Track> {
+    const track = await this.trackModel.findOne({
+      where: { id },
+      include: ['comments'],
+      attributes: [
+        'id',
+        'name',
+        'artist',
+        'listens',
+        'picture',
+        'audio',
+        'text',
+      ],
+    });
 
-    async getOne(id: ObjectId): Promise<Track> {
-        const track = await this.trackModel.findById(id).populate('comments');
+    return track;
+  }
 
-        return track
-    }
+  async deleteOne(id: number): Promise<number> {
+    const trackId = await this.trackModel.destroy({ where: { id } });
+    return trackId;
+  }
 
-    async deleteOne(id: ObjectId): Promise<ObjectId> {
-        const track = await this.trackModel.findByIdAndDelete(id);
-        return track._id;
-    }
+  async addComment(dto: CreateCommentDto, trackId: number): Promise<Comment> {
+    const track = await this.trackModel.findOne({
+      where: {
+        id: trackId,
+      },
+    });
+    const comment = await this.commentModel.create({ ...dto });
+    await comment.$set('track', [trackId]);
+    track.comments.push(comment);
+    await track.save();
+    return comment;
+  }
 
-    async addComment(dto: CreateCommentDto, trackId: ObjectId): Promise<Comment> {
-        const track = await this.trackModel.findById(trackId);
-        const comment = await this.commentModel.create({...dto, trackId});
-        track.comments.push(comment._id);
-        await track.save();
-        return comment
-    }
+  async listen(id: number): Promise<void> {
+    const track = await this.trackModel.findOne({ where: { id } });
+    track.listens++;
+    track.save();
+  }
 
-    async listen(id: ObjectId): Promise<void> {
-        const track = await this.trackModel.findById(id);
-        track.listens++;
-        track.save();
-    }
+  async search(trackName: string, artistName: string): Promise<Track[]> {
+    const tracks = await this.trackModel.findAll({
+      where: {
+        name: {
+          $regex: new RegExp(trackName, 'i'),
+        },
+        artist: {
+          $regex: new RegExp(artistName, 'i'),
+        },
+      },
+      include: ['comments'],
+      attributes: [
+        'id',
+        'name',
+        'artist',
+        'listens',
+        'picture',
+        'audio',
+        'text',
+      ],
+    });
 
-    async search(trackName: string, artistName: string): Promise<Track[]> {
-        const tracks = await this.trackModel.find({
-            name: {$regex: new RegExp(trackName, 'i')},
-            artist: {$regex: new RegExp(artistName, 'i')}
-        })
-
-        return tracks;
-    }
+    return tracks;
+  }
 }
