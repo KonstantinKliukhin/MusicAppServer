@@ -16,11 +16,15 @@ import { CreateCommentDto } from './dto/add-comment.dto';
 import { Comment } from './schemas/comments.schema';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { Express } from 'express';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('tracks')
 @Controller('/tracks')
 export class TrackController {
   constructor(private trackService: TrackService) {}
 
+  @ApiOperation({ summary: 'Creates track' })
+  @ApiResponse({ status: 200, type: Track })
   @Post()
   @UseInterceptors(
     FileFieldsInterceptor([
@@ -39,19 +43,25 @@ export class TrackController {
     return this.trackService.create(dto, picture[0], audio[0]);
   }
 
+  @ApiOperation({ summary: 'Returns all tracks' })
+  @ApiResponse({ status: 200, type: [Track] })
   @Get()
   getAll(@Query('count') count: number, @Query('offset') offset: number) {
     return this.trackService.getAll(count, offset);
   }
 
+  @ApiOperation({ summary: 'finds track by track name or/and artist name' })
+  @ApiResponse({ status: 200, type: [Track] })
   @Get('/search')
   search(
     @Query('track_name') trackName: string,
     @Query('artist_name') artistName: string,
-  ) {
+  ): Promise<Track[]> {
     return this.trackService.search(trackName, artistName);
   }
 
+  @ApiOperation({ summary: 'adds comment to track' })
+  @ApiResponse({ status: 200, type: [Comment] })
   @Post('/:id/comment')
   addComment(
     @Param('id') trackId: string,
@@ -60,16 +70,22 @@ export class TrackController {
     return this.trackService.addComment(dto, Number(trackId));
   }
 
+  @ApiOperation({ summary: 'adds 1 listen to track' })
+  @ApiResponse({ status: 200 })
   @Post('/listen/:id')
   listen(@Param('id') id: string): Promise<void> {
     return this.trackService.listen(Number(id));
   }
 
+  @ApiOperation({ summary: 'returns 1 track' })
+  @ApiResponse({ status: 200, type: Track })
   @Get(':id')
   getOne(@Param('id') id: string): Promise<Track> {
     return this.trackService.getOne(Number(id));
   }
 
+  @ApiOperation({ summary: 'deletes track' })
+  @ApiResponse({ status: 200, type: Track })
   @Delete(':id')
   deleteOne(@Param('id') id: string): Promise<number> {
     return this.trackService.deleteOne(Number(id));

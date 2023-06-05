@@ -8,6 +8,9 @@ import { ConfigModule } from '@nestjs/config';
 import * as process from 'process';
 import { Track } from './track/schemas/track.schema';
 import { Comment } from './track/schemas/comments.schema';
+import { AuthModule } from './auth/auth.module';
+import { UserModule } from './user/user.module';
+import { User } from './user/schemas/user.schema';
 
 @Module({
   imports: [
@@ -24,11 +27,13 @@ import { Comment } from './track/schemas/comments.schema';
       username: process.env.POSTGRES_USER,
       password: process.env.POSTGRES_PASSWORD,
       database: process.env.POSTGRES_DB,
-      models: [Track, Comment],
+      models: [Track, Comment, User],
       autoLoadModels: true,
     }),
     TrackModule,
     FileModule,
+    AuthModule,
+    UserModule,
   ],
 })
 export class AppModule {}

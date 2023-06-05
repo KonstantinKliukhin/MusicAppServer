@@ -20,16 +20,16 @@ export class TrackService {
       FileType.IMAGE,
       picture,
     );
-    const track = await this.trackModel.create({
+
+    return await this.trackModel.create({
       ...dto,
       audio: audioPath,
       picture: picturePath,
     });
-    return track;
   }
 
   async getAll(count = 10, offset = 0): Promise<Track[]> {
-    const tracks = await this.trackModel.findAll({
+    return await this.trackModel.findAll({
       offset,
       limit: count,
       include: ['comments'],
@@ -43,12 +43,10 @@ export class TrackService {
         'text',
       ],
     });
-
-    return tracks;
   }
 
   async getOne(id: number): Promise<Track> {
-    const track = await this.trackModel.findOne({
+    return await this.trackModel.findOne({
       where: { id },
       include: ['comments'],
       attributes: [
@@ -61,13 +59,14 @@ export class TrackService {
         'text',
       ],
     });
-
-    return track;
   }
 
   async deleteOne(id: number): Promise<number> {
-    const trackId = await this.trackModel.destroy({ where: { id } });
-    return trackId;
+    const track = await this.trackModel.findOne({ where: { id } });
+    await track.destroy();
+    await this.fileService.removeFile(FileType.IMAGE, track.picture);
+    await this.fileService.removeFile(FileType.AUDIO, track.audio);
+    return id;
   }
 
   async addComment(dto: CreateCommentDto, trackId: number): Promise<Comment> {
@@ -90,7 +89,7 @@ export class TrackService {
   }
 
   async search(trackName: string, artistName: string): Promise<Track[]> {
-    const tracks = await this.trackModel.findAll({
+    return await this.trackModel.findAll({
       where: {
         name: {
           $regex: new RegExp(trackName, 'i'),
@@ -110,7 +109,5 @@ export class TrackService {
         'text',
       ],
     });
-
-    return tracks;
   }
 }
