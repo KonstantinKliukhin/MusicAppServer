@@ -21,11 +21,13 @@ export class TrackService {
       picture,
     );
 
-    return await this.trackModel.create({
+    const track = await this.trackModel.create({
       ...dto,
       audio: audioPath,
       picture: picturePath,
     });
+
+    return { ...track.dataValues, comments: [] } as Track;
   }
 
   async getAll(count = 10, offset = 0): Promise<Track[]> {

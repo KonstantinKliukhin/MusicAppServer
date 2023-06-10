@@ -10,7 +10,8 @@ import userToResponse from '../helpers/hydrators/userToResponse';
 @ApiTags('Authorization')
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService) {
+  }
 
   @ApiOperation({ summary: 'Authorizes user' })
   @ApiResponse({ status: 201, type: User })

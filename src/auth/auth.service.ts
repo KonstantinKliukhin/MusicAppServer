@@ -65,10 +65,17 @@ export class AuthService {
   private async validateUser<T extends { email: string; password: string }>(
     data: T,
   ) {
+    console.log(data);
     const user = await this.userService.getUserByEmail(data.email);
+
+    if (!user)
+      throw new UnauthorizedException({
+        message: 'Incorrect sign in email or password',
+      });
+
     const passwordEquals = await bcrypt.compare(data.password, user.password);
 
-    if (user && passwordEquals) return user;
+    if (passwordEquals) return user;
 
     throw new UnauthorizedException({
       message: 'Incorrect sign in email or password',

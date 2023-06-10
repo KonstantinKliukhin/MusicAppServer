@@ -5,6 +5,7 @@ type UserCreationAttrsType = {
   name: string;
   email: string;
   password: string;
+  avatar?: string;
 };
 
 @Table({ tableName: 'user' })
@@ -44,4 +45,15 @@ export class User extends Model<User, UserCreationAttrsType> {
     allowNull: false,
   })
   password: string;
+
+  @ApiProperty({
+    example: 'image/asd1234asdrv23423.jpg',
+    description: 'User avatar',
+  })
+  @Column({
+    type: DataType.STRING,
+    unique: false,
+    allowNull: true,
+  })
+  avatar: string;
 }

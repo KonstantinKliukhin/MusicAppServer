@@ -32,7 +32,7 @@ export class JwtAuthGuard implements CanActivate {
     }
   }
 
-  private getToken(req: any) {
+  private getToken(req: any): string | undefined {
     return this.getTokenFromCookies(req) || this.getTokenFromAuthHeader(req);
   }
 
