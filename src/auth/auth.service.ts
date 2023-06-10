@@ -11,6 +11,7 @@ import * as bcrypt from 'bcryptjs';
 import * as process from 'process';
 import { User } from '../user/schemas/user.schema';
 import SignInDto from './dto/sign-in.dto';
+import AuthResponseDto from './dto/auth-response.dto';
 
 @Injectable()
 export class AuthService {
@@ -19,18 +20,20 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async signIn(signInDto: SignInDto): Promise<{ token: string; user: User }> {
+  async signIn(signInDto: SignInDto): Promise<AuthResponseDto> {
     const user = await this.validateUser(signInDto);
 
     const tokenData = await this.generateToken(user);
 
-    return {
-      ...tokenData,
-      user,
-    };
+    return new AuthResponseDto(
+      tokenData.token,
+      user.id,
+      user.email,
+      user.avatar,
+    );
   }
 
-  async signUp(userDto: CreateUserDto): Promise<{ user: User; token: string }> {
+  async signUp(userDto: CreateUserDto): Promise<AuthResponseDto> {
     const candidate = await this.userService.getUserByEmail(userDto.email);
     if (candidate) {
       throw new HttpException(
@@ -50,10 +53,12 @@ export class AuthService {
     });
 
     const tokenData = await this.generateToken(user);
-    return {
-      ...tokenData,
-      user,
-    };
+    return new AuthResponseDto(
+      tokenData.token,
+      user.id,
+      user.email,
+      user.avatar,
+    );
   }
 
   private async generateToken(user: User) {
@@ -65,7 +70,6 @@ export class AuthService {
   private async validateUser<T extends { email: string; password: string }>(
     data: T,
   ) {
-    console.log(data);
     const user = await this.userService.getUserByEmail(data.email);
 
     if (!user)

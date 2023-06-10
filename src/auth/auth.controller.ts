@@ -5,13 +5,11 @@ import { AuthService } from './auth.service';
 import SignInDto from './dto/sign-in.dto';
 import { User } from '../user/schemas/user.schema';
 import { Response } from 'express';
-import userToResponse from '../helpers/hydrators/userToResponse';
 
 @ApiTags('Authorization')
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {
-  }
+  constructor(private authService: AuthService) {}
 
   @ApiOperation({ summary: 'Authorizes user' })
   @ApiResponse({ status: 201, type: User })
@@ -27,15 +25,13 @@ export class AuthController {
       sameSite: true,
     });
 
-    return { ...data, user: userToResponse(data.user) };
+    return data;
   }
 
   @ApiOperation({ summary: 'Register user' })
   @ApiResponse({ status: 201, type: User })
   @Post('/sign-up')
   async signUp(@Body() userDto: CreateUserDto) {
-    const data = await this.authService.signUp(userDto);
-
-    return { ...data, user: userToResponse(data.user) };
+    return await this.authService.signUp(userDto);
   }
 }
