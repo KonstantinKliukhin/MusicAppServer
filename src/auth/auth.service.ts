@@ -28,6 +28,7 @@ export class AuthService {
     return new AuthResponseDto(
       tokenData.token,
       user.id,
+      user.name,
       user.email,
       user.avatar,
     );
@@ -56,6 +57,7 @@ export class AuthService {
     return new AuthResponseDto(
       tokenData.token,
       user.id,
+      user.name,
       user.email,
       user.avatar,
     );
