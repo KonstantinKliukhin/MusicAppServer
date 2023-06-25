@@ -1,4 +1,4 @@
-import { Comment } from './comments.schema';
+import { Comment } from '../../comment/schemas/comments.schema';
 import { Column, DataType, HasMany, Model, Table } from 'sequelize-typescript';
 import { ApiProperty } from '@nestjs/swagger';
 

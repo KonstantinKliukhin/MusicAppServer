@@ -31,7 +31,18 @@ export class AuthController {
   @ApiOperation({ summary: 'Register user' })
   @ApiResponse({ status: 201, type: User })
   @Post('/sign-up')
-  async signUp(@Body() userDto: CreateUserDto) {
-    return await this.authService.signUp(userDto);
+  async signUp(
+    @Body() userDto: CreateUserDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const data = await this.authService.signUp(userDto);
+
+    res.cookie('token', data.token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: true,
+    });
+
+    return data;
   }
 }

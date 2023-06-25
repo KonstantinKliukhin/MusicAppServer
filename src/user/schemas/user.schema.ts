@@ -1,5 +1,6 @@
-import { Column, DataType, Model, Table } from 'sequelize-typescript';
+import { Column, DataType, HasMany, Model, Table } from 'sequelize-typescript';
 import { ApiProperty } from '@nestjs/swagger';
+import { Comment } from '../../comment/schemas/comments.schema';
 
 type UserCreationAttrsType = {
   name: string;
@@ -56,4 +57,7 @@ export class User extends Model<User, UserCreationAttrsType> {
     allowNull: true,
   })
   avatar: string;
+
+  @HasMany(() => Comment)
+  comments: Comment[];
 }

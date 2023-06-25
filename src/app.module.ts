@@ -7,7 +7,7 @@ import { SequelizeModule } from '@nestjs/sequelize';
 import { ConfigModule } from '@nestjs/config';
 import * as process from 'process';
 import { Track } from './track/schemas/track.schema';
-import { Comment } from './track/schemas/comments.schema';
+import { Comment } from './comment/schemas/comments.schema';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { User } from './user/schemas/user.schema';

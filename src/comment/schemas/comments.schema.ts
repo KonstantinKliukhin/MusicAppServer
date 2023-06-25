@@ -1,17 +1,10 @@
-import { Track } from './track.schema';
-import {
-  BelongsTo,
-  Column,
-  DataType,
-  ForeignKey,
-  Model,
-  Table,
-} from 'sequelize-typescript';
+import { Track } from '../../track/schemas/track.schema';
+import { BelongsTo, Column, DataType, ForeignKey, Model, Table } from 'sequelize-typescript';
 import { ApiProperty } from '@nestjs/swagger';
+import { User } from '../../user/schemas/user.schema';
 
 type CommentCreationAttrsType = {
-  name: string;
-  username: string;
+  text: string;
 };
 
 @Table({ tableName: 'comment' })
@@ -25,17 +18,23 @@ export class Comment extends Model<Comment, CommentCreationAttrsType> {
   })
   id: number;
 
-  @ApiProperty({ example: 'Some User name', description: 'User name' })
+  @ApiProperty({ example: 'Some comment', description: 'Comment' })
   @Column({
     type: DataType.STRING,
     unique: false,
     allowNull: false,
   })
-  username: string;
+  text: string;
 
   @BelongsTo(() => Track)
   track: Track;
 
   @ForeignKey(() => Track)
+  trackId: number;
+
+  @BelongsTo(() => User)
+  user: User;
+
+  @ForeignKey(() => User)
   userId: number;
 }

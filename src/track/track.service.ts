@@ -1,17 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { Track } from './schemas/track.schema';
 import { CreateTrackDto } from './dto/create-track.dto';
-import { CreateCommentDto } from './dto/add-comment.dto';
+import { CreateCommentDto } from '../comment/dto/add-comment.dto';
 import { FileService, FileType } from '../file/file.service';
 import { InjectModel } from '@nestjs/sequelize';
-import { Comment } from './schemas/comments.schema';
+import { Comment } from '../comment/schemas/comments.schema';
+import { CommentService } from '../comment/comment.service';
+import { Op } from 'sequelize';
 
 @Injectable()
 export class TrackService {
   constructor(
     @InjectModel(Track) private trackModel: typeof Track,
-    @InjectModel(Comment) private commentModel: typeof Comment,
     private fileService: FileService,
+    private commentService: CommentService,
   ) {}
 
   async create(dto: CreateTrackDto, picture, audio): Promise<Track> {
@@ -71,13 +73,18 @@ export class TrackService {
     return id;
   }
 
-  async addComment(dto: CreateCommentDto, trackId: number): Promise<Comment> {
+  async addComment(
+    dto: CreateCommentDto,
+    userId: number,
+    trackId: number,
+  ): Promise<Comment> {
     const track = await this.trackModel.findOne({
+      include: ['comments'],
       where: {
         id: trackId,
       },
     });
-    const comment = await this.commentModel.create({ ...dto });
+    const comment = await this.commentService.addComment(Number(userId), dto);
     await comment.$set('track', [trackId]);
     track.comments.push(comment);
     await track.save();
@@ -90,15 +97,21 @@ export class TrackService {
     track.save();
   }
 
-  async search(trackName: string, artistName: string): Promise<Track[]> {
+  async search(trackName = '', artistName = ''): Promise<Track[]> {
     return await this.trackModel.findAll({
       where: {
-        name: {
-          $regex: new RegExp(trackName, 'i'),
-        },
-        artist: {
-          $regex: new RegExp(artistName, 'i'),
-        },
+        [Op.and]: [
+          {
+            name: {
+              [Op.like]: `%${trackName}%`,
+            },
+          },
+          {
+            artist: {
+              [Op.like]: `%${artistName}%`,
+            },
+          },
+        ],
       },
       include: ['comments'],
       attributes: [

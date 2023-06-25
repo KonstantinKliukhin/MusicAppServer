@@ -10,8 +10,7 @@ export class UserService {
   constructor(
     @InjectModel(User) private UserRepository: typeof User,
     private fileService: FileService,
-  ) {
-  }
+  ) {}
 
   async createUser(dto: CreateUserDto): Promise<User> {
     return await this.UserRepository.create(dto);
@@ -35,7 +34,10 @@ export class UserService {
     id: number,
     avatar?: Express.Multer.File,
   ): Promise<User> {
-    const user = await this.UserRepository.findOne({ where: { id } });
+    const user = await this.UserRepository.findOne({
+      where: { id },
+      attributes: { exclude: ['password'] },
+    });
     user.name = data.name || user.name;
 
     if (avatar) {
@@ -45,7 +47,7 @@ export class UserService {
     return await user.save();
   }
 
-  async getOne(id: number): Promise<User> {
+  getOne(id: number): Promise<User> {
     return this.UserRepository.findOne({
       where: { id },
       attributes: { exclude: ['password'] },

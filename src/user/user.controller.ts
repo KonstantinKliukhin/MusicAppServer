@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  createParamDecorator,
   Get,
   Patch,
   Post,
@@ -13,15 +12,12 @@ import CreateUserDto from './dto/create-user.dto';
 import { User } from './schemas/user.schema';
 import { UserService } from './user.service';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/jwt-auth-guard';
+import { JwtAuthGuard } from '../auth';
 import UpdateUserDto from './dto/update-user.dto';
 import { Express } from 'express';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import TokenUser from '../models/TokenUser';
-
-export const GetTokenUser = createParamDecorator(
-  (data, req): TokenUser => req.args[0].user,
-);
+import { GetTokenUser } from '../auth';
 
 @ApiTags('Users')
 @Controller('user')
@@ -64,7 +60,7 @@ export class UserController {
   @ApiResponse({ status: 200, type: User })
   @UseGuards(JwtAuthGuard)
   @Get()
-  async me(@GetTokenUser() user: TokenUser): Promise<User> {
+  async me(@GetTokenUser() user: TokenUser | null): Promise<User> {
     return await this.userService.getOne(Number(user.id));
   }
 }
